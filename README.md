@@ -1,4 +1,4 @@
-# Audio-Speech-To-Sign-Language-Converter
+# SIGN LANGUAGE GENERATOR FROM SPEECH
 
 This project converts audio speech to sign language animations. It uses Django for the web framework, NLTK for natural language processing, and OpenCV for video processing.
 
