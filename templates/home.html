@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<video id="myVideo" width="500" height="380" class="center" autoplay loop>
+  <source src= "{% static 'Hello.mp4' %}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+<script>
+  document.getElementById('myVideo').playbackRate = 2 // Increase playback speed to 1.5x
+</script>
+<div class="form-style" align="middle">
+  <a href="{% url 'animation' %}"><button class="button">Click to Start</button></a>
+</div>
+{% endblock %}
