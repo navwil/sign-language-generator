@@ -30,4 +30,4 @@ os.makedirs(os.path.dirname(file_path), exist_ok=True)
 # Save and render the flowchart
 flowchart.render(file_path, format="png", cleanup=True)
 
-file_path + ".png"
+file_path + ".png" # Return the file path
