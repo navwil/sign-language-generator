@@ -1,139 +1,364 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 <div class="split left">
-	<h2 align="center">Record the Speech Video</h2>
-	<br>
-		<form action="" method="post" align="left">
-		{% csrf_token %}
-					<input type="text" name="sen" class="mytext" id="speechToText" placeholder="">
-					<button type="button" name="button" class="mic" onclick="record()"><img src="{% static 'mic3.png' %}" height="32px" width="38px" /></button>
-		  			&nbsp&nbsp&nbsp&nbsp
-		  			<input type="submit" name="submit" class="submit">
-
-		</form>
-		<br>
-		<table cellspacing="20px">
-			
-			<tr>
-				<td class="td">Sentenceter After Preproccesing:</td>
-				<td class="td">
-				<ul class="td" id="list" align="center">
-  					{% for word in words %}
-    				<li id="{{ i }}" style="margin-right: 8px">{{ word }}</li>
-  					{% endfor %}
-				</ul>
-			</td>
-		</tr>
-	</table></div>
-  <div class="split right">
+  <h2 align="center">Record the Speech Video</h2>
+  <div id="webcamPreview" style="text-align: center; margin-bottom: 20px">
+    <video id="webcamVideo" width="400" height="300" autoplay muted></video>
+  </div>
+  <br />
+  <form action="" method="post" align="left">
+    {% csrf_token %}
+    <textarea
+      type="text"
+      name="sen"
+      class="mytext"
+      id="speechToText"
+      placeholder=""
+    /></textarea>
+    <button type="button" name="button" class="mic" onclick="record()">
+      <img src="{% static 'mic3.png' %}" height="32px" width="38px" />
+    </button>
+    &nbsp&nbsp&nbsp&nbsp
+    <input type="submit" name="submit" class="submit" />
+  </form>
+  <br />
+  <table cellspacing="20px">
+    <tr>
+      <td class="td">Sentence After Preprocessing:</td>
+      <td class="td">
+        <ul class="td" id="list" align="center">
+          {% for word in words %}
+          <li id="{{ i }}" style="margin-right: 8px">{{ word }}</li>
+          {% endfor %}
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+<div class="split right">
   <h2 align="center">Sign Language Animation</h2>
 
-	<div style="text-align:center">	&nbsp&nbsp
-  	<button class="submit vibrant-button" onclick="playPause()">Play/Pause</button>
-  	
+  <div style="text-align: center">
+    &nbsp&nbsp
+    <button class="submit vibrant-button" onclick="playPause()">
+      Play/Pause
+    </button>
 
-
-
-  	<video id="videoPlayer" width="600" height="350"  preload="auto" autoplay>
-    	<source src="" type="video/mp4">
-    Your browser does not support HTML5 video.
-  	</video>
-  	</div></div>
-
+    <video id="videoPlayer" width="600" height="350" preload="auto" autoplay>
+      <source src="" type="video/mp4" />
+      Your browser does not support HTML5 video.
+    </video>
+  </div>
+</div>
 
 <script>
-	
-	function record(){
-		var recognition = new webkitSpeechRecognition();
-		recognition.lang='en-IN';
+  const webcamVideo = document.getElementById("webcamVideo");
 
-		recognition.onresult = function(event){
-			console.log(event)
-			document.getElementById('speechToText').value = event.results[0][0].transcript;
-		}
-		recognition.start();
-	 }
-	function play()
-	{
-		var videoSource = new Array();
-		var	videos = document.getElementById("list").getElementsByTagName("li");
-		var j;
-		for(j=0;j<videos.length;j++)
-		{
-			videoSource[j] = "/static/" + videos[j].innerHTML +".mp4";
-		}
+  navigator.mediaDevices
+    .getUserMedia({ video: true, audio: false })
+    .then((stream) => {
+      webcamVideo.srcObject = stream;
+      webcamVideo.play();
+    })
+    .catch((error) => {
+      console.error("Error accessing webcam:", error);
+      alert(
+        "Could not access webcam. Please ensure it is connected and permissions are granted."
+      );
+    });
 
-		var i = 0; // define i
-		var videoCount = videoSource.length;
+  function record() {
+    var recognition = new webkitSpeechRecognition();
+    recognition.lang = "en-IN";
 
-		function videoPlay(videoNum)
-		{
-			document.getElementById("list").getElementsByTagName("li")[videoNum].style.color = "#09edc7";
-			document.getElementById("list").getElementsByTagName("li")[videoNum].style.fontSize = "xx-large";
-			document.getElementById("videoPlayer").setAttribute("src", videoSource[videoNum]);
-	    	document.getElementById("videoPlayer").load();
-	    	document.getElementById("videoPlayer").play();
-
-		}
-		document.getElementById('videoPlayer').addEventListener('ended', myHandler, false);
-		document.getElementById("list").getElementsByTagName("li")[0].style.color = "#09edc7";
-		document.getElementById("list").getElementsByTagName("li")[0].style.fontSize = "xx-large";
-
-		videoPlay(0); // play the video
-
-		function myHandler()
-		{
-	 		document.getElementById("list").getElementsByTagName("li")[i].style.color = "#feda6a";
-			document.getElementById("list").getElementsByTagName("li")[i].style.fontSize = "20px";
-			i++;
-	    	if (i == videoCount)
-	    	{
-	       	    document.getElementById("videoPlayer").pause();
-	    	}
-	     	else
-	     	{
-	        	videoPlay(i);
-	    	}
-		}
-	}
-	
-	function playPause(){
-  		if (document.getElementById("videoPlayer").paused){
-    		play();}
-  		else{
-    		document.getElementById("videoPlayer").pause();}
-		}
-
-	function videoPlay(index) {
-        var video = document.getElementById("videoPlayer");
-        video.playbackRate = 2; // Increase playback speed to 2x
-        video.src = videoSource[index];
-        video.play();
+    recognition.onresult = function (event) {
+      console.log(event);
+      document.getElementById("speechToText").value =
+        event.results[0][0].transcript;
+    };
+    recognition.start();
+  }
+  function play() {
+    var videoSource = new Array();
+    var videos = document.getElementById("list").getElementsByTagName("li");
+    var j;
+    for (j = 0; j < videos.length; j++) {
+      videoSource[j] = "/static/" + videos[j].innerHTML + ".mp4";
     }
 
-	</script>
+    var i = 0; // define i
+    var videoCount = videoSource.length;
+
+    function videoPlay(videoNum) {
+      document.getElementById("list").getElementsByTagName("li")[
+        videoNum
+      ].style.color = "#09edc7";
+      document.getElementById("list").getElementsByTagName("li")[
+        videoNum
+      ].style.fontSize = "xx-large";
+      document
+        .getElementById("videoPlayer")
+        .setAttribute("src", videoSource[videoNum]);
+      document.getElementById("videoPlayer").load();
+      document.getElementById("videoPlayer").play();
+    }
+    document
+      .getElementById("videoPlayer")
+      .addEventListener("ended", myHandler, false);
+    document.getElementById("list").getElementsByTagName("li")[0].style.color =
+      "#09edc7";
+    document
+      .getElementById("list")
+      .getElementsByTagName("li")[0].style.fontSize = "xx-large";
+
+    videoPlay(0); // play the video
+
+    function myHandler() {
+      document.getElementById("list").getElementsByTagName("li")[
+        i
+      ].style.color = "#feda6a";
+      document.getElementById("list").getElementsByTagName("li")[
+        i
+      ].style.fontSize = "20px";
+      i++;
+      if (i == videoCount) {
+        document.getElementById("videoPlayer").pause();
+      } else {
+        videoPlay(i);
+      }
+    }
+  }
+
+  function playPause() {
+    if (document.getElementById("videoPlayer").paused) {
+      play();
+    } else {
+      document.getElementById("videoPlayer").pause();
+    }
+  }
+
+  function videoPlay(index) {
+    var video = document.getElementById("videoPlayer");
+    video.playbackRate = 2; // Increase playback speed to 2x
+    video.src = videoSource[index];
+    video.play();
+  }
+</script>
 
 <style>
-    body {
-        background-color: black;
-        color: white;
+  /* ======== Updated Styles ======== */
+  body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .split {
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+
+  .left {
+    background: #2d2d2d;
+    border-right: 2px solid #3d3d3d;
+  }
+
+  .right {
+    background: #262626;
+  }
+
+  h2 {
+    color: #feda6a;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3d3d3d;
+    font-weight: 600;
+  }
+
+  .mytext {
+    width: 320px;
+    padding: 0.8rem;
+    border-radius: 4px;
+    border: 1px solid #4d4d4d;
+    background: #333;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    flex: 1;
+    margin-left: 0 !important;
+  }
+
+  .mytext:focus {
+    border-color: #feda6a;
+    box-shadow: 0 0 8px rgba(254, 218, 106, 0.2);
+    outline: none;
+  }
+
+  .mic {
+    background: #feda6a;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    margin-left: 0.5rem;
+    height: 42px; /* Match input height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mic:hover {
+    transform: scale(1.05);
+  }
+
+  .mic img {
+    vertical-align: middle;
+  }
+
+  .submit {
+    background: #feda6a;
+    color: #1a1a1a;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    font-size: 1rem;
+    margin-top: 0;
+    height: 42px;
+  }
+
+  .submit:hover {
+    background: #ffecb3;
+    color: #2d2d2d;
+  }
+
+  .td {
+    color: #cccccc;
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+  }
+
+  #list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    padding: 1rem;
+    background: #333;
+    border-radius: 6px;
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #333;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+
+  #list li {
+    background: #404040;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: #404040;
+    border-radius: 4px;
+  }
+
+  #webcamVideo {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: #333;
+    margin: 1rem 0;
+  }
+
+  .vibrant-button {
+    background: #feda6a;
+    color: #1a1a1a;
+    padding: 0.8rem 2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .vibrant-button:hover {
+    background: #ffecb3;
+    transform: translateY(-1px);
+  }
+
+  #videoPlayer {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: #333;
+  }
+
+  /* ======== Layout Improvements ======== */
+
+  .split.left {
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 20px;
+  }
+
+  .split.right {
+    padding-left: 2rem;
+  }
+
+  form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 54px;
+    width: calc(100% - 54px);
+  }
+
+  table {
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+
+  table td {
+    vertical-align: top;
+    padding: 0.5rem 0;
+  }
+
+  /* ======== Responsive Design ======== */
+  @media (max-width: 1200px) {
+    .split {
+      width: 100%;
+      position: relative;
+      padding: 1.5rem;
     }
 
-    .vibrant-button {
-        background-color: #ff5733; /* Vibrant orange */
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+    .left {
+      border-right: none;
+      border-bottom: 2px solid #3d3d3d;
     }
 
-    .vibrant-button:hover {
-        background-color: #c70039; /* Vibrant red */
+    #webcamVideo,
+    #videoPlayer {
+      width: 100%;
+      height: auto;
     }
+
+    form {
+      margin-left: 20px;
+      width: calc(100% - 20px);
+    }
+
+    .mytext {
+      width: 100%;
+    }
+  }
 </style>
 
 {% endblock %}
