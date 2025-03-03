@@ -1,0 +1,6 @@
+Django>=3.0
+NLTK>=3.5
+opencv-python>=4.1.0
+PyAudio
+SpeechRecognition
+graphviz
