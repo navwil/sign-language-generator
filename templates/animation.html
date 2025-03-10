@@ -14,7 +14,7 @@
       id="speechToText"
       placeholder=""
     /></textarea>
-    <button type="button" name="button" class="mic" onclick="record()">
+    <button type="button" name="button" class="mic" onclick="record(); clickEffect(this)">
       <img src="{% static 'video.png' %}" height="32px" width="38px" />
     </button>
     &nbsp&nbsp&nbsp&nbsp
@@ -142,6 +142,13 @@
     video.src = videoSource[index];
     video.play();
   }
+
+  function clickEffect(button) {
+    button.classList.add('clicked');
+    setTimeout(() => {
+      button.classList.remove('clicked');
+    }, 200); // Duration of the click effect
+  }
 </script>
 
 <style>
@@ -214,6 +221,11 @@
 
   .mic img {
     vertical-align: middle;
+  }
+
+  .mic.clicked {
+    transform: scale(0.95);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
   }
 
   .submit {

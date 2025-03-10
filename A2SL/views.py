@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout
@@ -6,6 +6,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import nltk
+from nltk import pos_tag
 from django.contrib.staticfiles import finders
 from django.contrib.auth.decorators import login_required
 from nltk.stem import PorterStemmer
@@ -117,6 +118,15 @@ def process_audio(audio_filename):
         except sr.RequestError as e:
             return None
 
+def remove_consecutive_repeats(words):
+    if not words:
+        return words
+    result = [words[0]]
+    for i in range(1, len(words)):
+        if words[i] != words[i - 1]:
+            result.append(words[i])
+    return result
+
 def process_text(text):
     stop_words = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
@@ -128,6 +138,10 @@ def process_text(text):
             lemmatized_word = lemmatizer.lemmatize(word)
             stemmed_word = stemmer.stem(lemmatized_word)
             processed_text.append(stemmed_word)
+    
+    # Remove consecutive repeated words
+    processed_text = remove_consecutive_repeats(processed_text)
+    
     final_text = ' '.join(processed_text)
     sentences = final_text.split('. ')
     converted_sentences = [convert_to_verb_subject(sentence) for sentence in sentences]
@@ -199,6 +213,10 @@ def animation_view(request):
                 temp = ["now"]
                 temp = temp + words
                 words = temp
+                
+        # Apply the remove_consecutive_repeats function to the words in animation_view as well
+        words = remove_consecutive_repeats(words)
+        
         filtered_text = []
         for w in words:
             path = w + ".mp4"
