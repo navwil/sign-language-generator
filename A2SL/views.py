@@ -1,3 +1,4 @@
+# Import necessary modules and libraries
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -24,88 +25,94 @@ nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('punkt')
 
+# Define view for the home page
 def home_view(request):
     return render(request, 'home.html')
 
+# Define view for the about page
 def about_view(request):
     return render(request, 'about.html')
 
+# Define view for the contact page
 def contact_view(request):
     return render(request, 'contact.html')
 
+# Define view to record video and audio
 def record_video_audio(request):
     if request.method == 'POST':
-        video_filename = 'output.avi'
-        audio_filename = 'output.wav'
-        chunk = 1024
-        sample_format = pyaudio.paInt16
-        channels = 2
-        fs = 44100
+        video_filename = 'output.avi'  # Set video filename
+        audio_filename = 'output.wav'  # Set audio filename
+        chunk = 1024  # Audio chunk size
+        sample_format = pyaudio.paInt16  # Audio sample format
+        channels = 2  # Number of audio channels
+        fs = 44100  # Audio sampling rate
 
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0)  # Open video capture
         if not cap.isOpened():
             return JsonResponse({'error': 'Could not open video.'})
 
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out = cv2.VideoWriter(video_filename, fourcc, 20.0, (640, 480))
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Define video codec
+        out = cv2.VideoWriter(video_filename, fourcc, 20.0, (640, 480))  # Create video writer
 
-        p = pyaudio.PyAudio()
+        p = pyaudio.PyAudio()  # Initialize PyAudio
         try:
-            stream = p.open(format=sample_format, channels=channels, rate=fs, output=False, input=True, frames_per_buffer=chunk)
+            stream = p.open(format=sample_format, channels=channels, rate=fs, output=False, input=True, frames_per_buffer=chunk)  # Open audio stream
         except Exception as e:
             return JsonResponse({'error': f'Error opening audio stream: {e}'})
 
-        frames = []
+        frames = []  # List to store audio frames
 
+        # Function to record audio
         def record_audio():
             while recording:
                 data = stream.read(chunk)
                 frames.append(data)
 
-        recording = True
-        audio_thread = threading.Thread(target=record_audio)
-        audio_thread.start()
+        recording = True  # Set recording flag
+        audio_thread = threading.Thread(target=record_audio)  # Create audio recording thread
+        audio_thread.start()  # Start audio recording thread
 
         try:
             while True:
-                ret, frame = cap.read()
+                ret, frame = cap.read()  # Read video frame
                 if not ret:
                     break
-                out.write(frame)
-                cv2.imshow('Video Feed', frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                out.write(frame)  # Write video frame to file
+                cv2.imshow('Video Feed', frame)  # Display video feed
+                if cv2.waitKey(1) & 0xFF == ord('q'):  # Break loop on 'q' key press
                     break
         except Exception as e:
             return JsonResponse({'error': f'Error during recording: {e}'})
         finally:
-            recording = False
-            audio_thread.join()
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-            cap.release()
-            out.release()
-            cv2.destroyAllWindows()
+            recording = False  # Stop recording
+            audio_thread.join()  # Wait for audio thread to finish
+            stream.stop_stream()  # Stop audio stream
+            stream.close()  # Close audio stream
+            p.terminate()  # Terminate PyAudio
+            cap.release()  # Release video capture
+            out.release()  # Release video writer
+            cv2.destroyAllWindows()  # Close all OpenCV windows
 
-        with wave.open(audio_filename, 'wb') as wf:
+        with wave.open(audio_filename, 'wb') as wf:  # Save audio to file
             wf.setnchannels(channels)
             wf.setsampwidth(p.get_sample_size(sample_format))
             wf.setframerate(fs)
             wf.writeframes(b''.join(frames))
 
-        if os.path.exists(video_filename):
+        if os.path.exists(video_filename):  # Remove video file if it exists
             os.remove(video_filename)
 
-        text = process_audio(audio_filename)
+        text = process_audio(audio_filename)  # Process audio to extract text
         if text:
-            final_converted_text = process_text(text)
-            if os.path.exists(audio_filename):
+            final_converted_text = process_text(text)  # Process text
+            if os.path.exists(audio_filename):  # Remove audio file if it exists
                 os.remove(audio_filename)
-            return JsonResponse({'text': final_converted_text})
+            return JsonResponse({'text': final_converted_text})  # Return processed text as JSON response
         else:
             return JsonResponse({'error': 'No text extracted from audio.'})
-    return render(request, 'record.html')
+    return render(request, 'record.html')  # Render record page
 
+# Function to process audio and extract text
 def process_audio(audio_filename):
     recognizer = sr.Recognizer()
     with sr.AudioFile(audio_filename) as source:
@@ -118,6 +125,7 @@ def process_audio(audio_filename):
         except sr.RequestError as e:
             return None
 
+# Function to remove consecutive repeated words
 def remove_consecutive_repeats(words):
     if not words:
         return words
@@ -127,6 +135,7 @@ def remove_consecutive_repeats(words):
             result.append(words[i])
     return result
 
+# Function to process text
 def process_text(text):
     stop_words = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
@@ -148,6 +157,7 @@ def process_text(text):
     final_converted_text = '. '.join(converted_sentences)
     return final_converted_text
 
+# Function to convert sentences to verb-subject order
 def convert_to_verb_subject(sentence):
     words = word_tokenize(sentence)
     tagged = pos_tag(words)
@@ -164,6 +174,7 @@ def convert_to_verb_subject(sentence):
             i += 1
     return ' '.join(converted_sentence)
 
+# Define view for animation
 def animation_view(request):
     if request.method == 'POST':
         text = request.POST.get('sen')
@@ -231,6 +242,7 @@ def animation_view(request):
     else:
         return render(request, 'animation.html')
 
+# Define view for logout
 def logout_view(request):
     logout(request)
     return redirect("home")
