@@ -46,3 +46,10 @@ Contributions are welcome! Please feel free to submit pull requests.
 ## License
 
 This project is licensed under the MIT License.
+
+**Note:**  
+If you encounter an NLTK error related to `punkt` while running the project, run:
+```python
+import nltk
+nltk.download('punkt')
+```
